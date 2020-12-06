@@ -2,30 +2,38 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "com.projetosd.grpc";
-option java_outer_classname = "CrudProto";
-option objc_class_prefix = "CRUD";
+
+//option java_outer_classname = "CrudProto";
+//option objc_class_prefix = "CRUD";
 
 package crud;
 
-message Dto {
-  int32 i = 1;
-  string s = 2;
-  bool b = 3;
+message ResponseModel {
+  bool success = 1;
+  string response = 2;
 }
 
-message DtoList {
-  repeated Dto dto = 1;
+message SetRequest {
+  string content = 1;
 }
 
-message ProcessingResponse {
-  string message = 1;
+message GetRequest {
+  bool all = 1;
+  int64 id = 2;
 }
 
-message Empty {}
+message TestAndSetRequest {
+  int64 id = 1;
+  string content = 2;
+}
+
+message DelRequest {
+  int64 id = 1;
+}
 
 service CrudService {
-  rpc CreateDto (Dto) returns (ProcessingResponse) {}
-  rpc UpdateDto (Dto) returns (ProcessingResponse) {}
-  rpc DeleteDto (Dto) returns (ProcessingResponse) {}
-  rpc GetDtoList (Empty) returns (DtoList) {}
+  rpc set(SetRequest) returns (ResponseModel);
+  rpc get(GetRequest) returns (ResponseModel);
+  rpc testAndSet(TestAndSetRequest) returns (ResponseModel);
+  rpc del(DelRequest) returns (ResponseModel);
 }
