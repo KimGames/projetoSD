@@ -4,7 +4,6 @@ import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
 
 import com.projetosd.grpc.*;
-import com.projetosd.grpc.services.CrudServiceGrpcImpl;
 
 public class MenuThread implements Runnable {
 	private CrudServiceGrpc.CrudServiceBlockingStub stub;
