@@ -36,14 +36,6 @@ public class CrudServer {
     private int logNumber;
     private int snapshotNumber;
 
-    private static final Logger LOG = Logger.getLogger(CrudServer.class.getName());
-
-    public static void main(String[] args) throws IOException, InterruptedException {
-        CrudServer crudServer = new CrudServer();
-        crudServer.start();
-        crudServer.blockUntilShutdown();
-    }
-
     public CrudServer() throws IOException {
         connection = Configuration.getProperties();
         port = Integer.parseInt(connection.getProperty("properties.server.port"));
@@ -78,6 +70,12 @@ public class CrudServer {
         logThread = new Thread (new LogThread(logQueue, dataBase, logFolder.toString(), logNumber, snapshotNumber));
     }
 
+    public static void main(String[] args) throws IOException, InterruptedException {
+        CrudServer crudServer = new CrudServer();
+        crudServer.start();
+        crudServer.blockUntilShutdown();
+    }
+
     private void start() throws IOException {
 
         executionThread.setDaemon(true);
@@ -100,7 +98,7 @@ public class CrudServer {
         server = ServerBuilder.forPort(port).addService(new CrudServiceGrpcImpl(receptionQueue)).build().start();
 
         System.out.println("Server started, listening on " + port);
-        System.out.println("Pressed Ctrl+c to exit");
+        System.out.println("Press Ctrl+c to exit");
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override

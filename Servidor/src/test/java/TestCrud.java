@@ -100,11 +100,6 @@ public class TestCrud {
                         responseQueue.add(getOutputTwo);
                         System.out.println("---------------------------");
 
-                        System.out.println("Deletando pelo ID:");
-                        String delInput = "del " + id;
-                        Object delOutput = validateCommand(delInput);
-                        responseQueue.add(delOutput);
-                        System.out.println("---------------------------");
                     } else {
                         System.out.println("ID igual a 0, erro.");
                     }
