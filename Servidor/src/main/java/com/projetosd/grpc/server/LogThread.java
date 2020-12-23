@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -18,7 +19,7 @@ import java.util.logging.SimpleFormatter;
 
 public class LogThread implements Runnable {
 	private final BlockingQueue<Input> logQueue;
-	private HashMap<Long, byte[]> dataBase;
+	private HashMap<BigInteger, byte[]> dataBase;
 	private String logFolder;
 	
 	private FileHandler logHandler = null;
@@ -33,7 +34,7 @@ public class LogThread implements Runnable {
 
     public LogThread(
     		BlockingQueue<Input> _logQueue, 
-    		HashMap<Long, byte[]> _dataBase, 
+    		HashMap<BigInteger, byte[]> _dataBase,
     		String _logFolder, 
     		int _logNumber, 
     		int _snapshotNumber) {
@@ -60,18 +61,16 @@ public class LogThread implements Runnable {
     	
     	if (logger != null) {
     		while (true) {
-    			if (logQueue.size() != 0) {
-    				try {
-						input = logQueue.take();
-						
-						if(input.getOperation() != 1) {
-							logger.info(input.toString());
-						}
-					} catch (InterruptedException e) {
-						logger.warning("Falha ao recuperar o comando a partir da fila de execução.");
-					}    				
-    			}
-    		}
+				try {
+					input = logQueue.take();
+
+					if(input.getOperation() != 1) {
+						logger.info(input.toString());
+					}
+				} catch (InterruptedException e) {
+					logger.warning("Falha ao recuperar o comando a partir da fila de execução.");
+				}
+			}
     	}
     }
     

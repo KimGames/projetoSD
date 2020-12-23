@@ -1,5 +1,16 @@
 package com.projetosd.grpc.server;
 
+import org.apache.ratis.conf.RaftProperties;
+import org.apache.ratis.grpc.GrpcConfigKeys;
+import org.apache.ratis.protocol.RaftGroup;
+import org.apache.ratis.protocol.RaftGroupId;
+import org.apache.ratis.protocol.RaftPeer;
+import org.apache.ratis.protocol.RaftPeerId;
+import org.apache.ratis.server.RaftServer;
+import org.apache.ratis.server.RaftServerConfigKeys;
+import org.apache.ratis.thirdparty.com.google.protobuf.ByteString;
+import org.apache.ratis.util.LifeCycle;
+
 import com.projetosd.grpc.resources.Configuration;
 import com.projetosd.grpc.resources.DataBaseRecovery;
 import com.projetosd.grpc.resources.Input;
@@ -9,11 +20,16 @@ import com.projetosd.grpc.services.CrudServiceGrpcImpl;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.net.InetSocketAddress;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class CrudServer {
 
@@ -31,7 +47,7 @@ public class CrudServer {
     private BlockingQueue<Input> logQueue;
     private BlockingQueue<Input> repassQueue;
 
-    private HashMap<Long, byte[]> dataBase;
+    private HashMap<BigInteger, byte[]> dataBase;
 
     private int logNumber;
     private int snapshotNumber;
@@ -71,6 +87,20 @@ public class CrudServer {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
+
+        String raftGroupId = "raft_group____um"; // 16 caracteres.
+
+        //Setup for node all nodes.
+        Map<String,InetSocketAddress> id2addr = new HashMap<>();
+        id2addr.put("p1", new InetSocketAddress("127.0.0.1", 3000));
+        id2addr.put("p2", new InetSocketAddress("127.0.0.1", 3500));
+        id2addr.put("p3", new InetSocketAddress("127.0.0.1", 4000));
+
+        List<RaftPeer> addresses = id2addr.entrySet()
+                .stream()
+                .map(e -> new RaftPeer(RaftPeerId.valueOf(e.getKey()), e.getValue()))
+                .collect(Collectors.toList());
+
         CrudServer crudServer = new CrudServer();
         crudServer.start();
         crudServer.blockUntilShutdown();

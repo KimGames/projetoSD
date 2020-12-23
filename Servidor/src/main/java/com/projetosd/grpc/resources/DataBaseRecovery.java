@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -14,11 +15,11 @@ import java.util.concurrent.BlockingQueue;
 
 public class DataBaseRecovery {
 	@SuppressWarnings("unchecked")
-	public static HashMap<Long, byte[]> dataBaseRecovery(
+	public static HashMap<BigInteger, byte[]> dataBaseRecovery(
 			BlockingQueue<Input> _executionQueue, String _logFolder, 
 			int _logNumber, int _snapshotNumber) throws IOException {
 		
-		HashMap<Long, byte[]> dataBase = new HashMap<Long, byte[]>();
+		HashMap<BigInteger, byte[]> dataBase = new HashMap<BigInteger, byte[]>();
 		
 		String logFileName;
 		File logFile, snapshotFile;
@@ -28,7 +29,7 @@ public class DataBaseRecovery {
 	        ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
 
 	        try {
-				dataBase = (HashMap<Long, byte[]>)objectInputStream.readObject();
+				dataBase = (HashMap<BigInteger, byte[]>)objectInputStream.readObject();
 			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -59,7 +60,7 @@ public class DataBaseRecovery {
 	    			Input input = new Input();
 	    			
 	    			input.setOperation(Integer.parseInt(operation));
-					input.setId(Long.parseLong(id));
+					input.setId(BigInteger.valueOf(Integer.parseInt(id)));
 					input.setContent(content);
 
 	    			_executionQueue.add(input);
