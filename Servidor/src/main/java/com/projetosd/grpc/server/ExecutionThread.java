@@ -1,8 +1,13 @@
 package com.projetosd.grpc.server;
 
 import com.projetosd.grpc.resources.Input;
+import org.apache.ratis.client.RaftClient;
+import org.apache.ratis.protocol.Message;
+import org.apache.ratis.protocol.RaftClientReply;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
@@ -16,12 +21,18 @@ public class ExecutionThread implements Runnable {
 
 	private long actualKey;
 	private BigInteger nextKey;
+	private RaftClient raftClient;
+
+	private RaftClientReply getValue;
+	private String response;
 
 	private Input input;
 	
-	public ExecutionThread(BlockingQueue<Input> _executionQueue, HashMap<BigInteger, byte[]> _dataBase) {
+	public ExecutionThread(BlockingQueue<Input> _executionQueue, HashMap<BigInteger, byte[]> _dataBase,
+						   RaftClient raftClient) {
 		this.executionQueue = _executionQueue;
 		this.dataBase = _dataBase;
+		this.raftClient = raftClient;
 		actualKey = dataBase.size();
 		nextKey = BigInteger.valueOf(dataBase.size());
 	}
@@ -35,6 +46,10 @@ public class ExecutionThread implements Runnable {
 
 						actualKey = actualKey + 1;
 						nextKey = BigInteger.valueOf(actualKey);
+
+						getValue = raftClient.send(Message.valueOf("add:" + nextKey + ":" + input.getContent()));
+						response = getValue.getMessage().getContent().toString(Charset.defaultCharset());
+						System.out.println("Resposta:" + response);
 
 						dataBase.put(nextKey, input.getContent().getBytes());
 
@@ -96,6 +111,8 @@ public class ExecutionThread implements Runnable {
 			}
 		} catch (InterruptedException e) {
 			System.out.println("Ocorreu uma falha na execuçã das requisições.\nO servidor será finalizado.");
+		} catch (IOException ioException) {
+			System.out.println("ioException: " + ioException.getMessage());
 		}
 	}
 }

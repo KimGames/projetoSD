@@ -30,6 +30,7 @@ com\projetosd\grpc\resources\BlockingResponseMap.class
 com\projetosd\grpc\CrudServiceGrpc$CrudServiceImplBase.class
 com\projetosd\grpc\SetRequest$Builder.class
 com\projetosd\grpc\SetRequestOrBuilder.class
+com\projetosd\grpc\server\StateMachineServer.class
 com\projetosd\grpc\DelRequest.class
 com\projetosd\grpc\CrudServiceGrpc$CrudServiceStub.class
 com\projetosd\grpc\CrudProto$1.class
