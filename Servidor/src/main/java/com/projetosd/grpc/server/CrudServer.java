@@ -1,5 +1,6 @@
 package com.projetosd.grpc.server;
 
+import com.projetosd.grpc.client.CrudClient;
 import org.apache.ratis.client.RaftClient;
 import org.apache.ratis.conf.Parameters;
 import org.apache.ratis.conf.RaftProperties;
@@ -62,11 +63,17 @@ public class CrudServer {
     private int logNumber;
     private int snapshotNumber;
 
-    public CrudServer() throws IOException {
+    public CrudServer(String argsPort) throws IOException {
 
         /*Mapeamento Inicial*/
         connection = Configuration.getProperties();
-        port = Integer.parseInt(connection.getProperty("properties.server.port"));
+
+        if (argsPort.equals("s1")) port = Integer.parseInt(connection.getProperty("properties.server.portOne"));
+        if (argsPort.equals("s2")) port = Integer.parseInt(connection.getProperty("properties.server.portTwo"));
+        if (argsPort.equals("s3")) port = Integer.parseInt(connection.getProperty("properties.server.portThree"));
+
+        System.out.println("Irei iniciar na porta: " + port);
+
         logFolder = new File(connection.getProperty("properties.server.logFolder"));
 
         /*Mapeamento para o RATIS*/
@@ -119,23 +126,28 @@ public class CrudServer {
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
-        CrudServer crudServer = new CrudServer();
+        String[] ports = {"s1", "s2", "s3"};
+        if(!args[0].isEmpty() && Arrays.asList(ports).contains(args[0])) {
 
-        /*Verifico se foi passada um servidor existente*/
-        if(crudServer.validateRatisConfigs(args[0])) {
-            System.out.println("Identificador enviado '" + args[0] + "' é válido.");
+            System.out.println("Porta enviada '" + args[0] + "' é válida.");
+            CrudServer crudServer = new CrudServer(args[0]);
 
-            crudServer.startRatisClient();
-//            crudServer.startRatisServer(args[0]);
-            crudServer.startRatisServer01();
-            crudServer.startRatisServer02();
-            crudServer.startRatisServer03();
-            crudServer.startThreads();
-            crudServer.start();
-            crudServer.blockUntilShutdown();
+            /*Verifico se foi passada um servidor existente*/
+            if(crudServer.validateRatisConfigs(args[0])) {
+                System.out.println("Identificador enviado '" + args[0] + "' é válido.");
 
+                crudServer.startRatisClient();
+                crudServer.startRatisServer(args[0]);
+                crudServer.startThreads();
+                crudServer.start();
+                crudServer.blockUntilShutdown();
+
+            } else {
+                System.out.println("Identificador enviado '" + args[0] + "' é inválido.");
+                System.exit(1);
+            }
         } else {
-            System.out.println("Identificador enviado '" + args[0] + "' é inválido.");
+            System.out.println("Porta inválida.");
             System.exit(1);
         }
     }
@@ -166,70 +178,6 @@ public class CrudServer {
     }
 
     private void startRatisServer(String serverId) throws IOException {
-
-        //Setup for this node.
-        RaftPeerId myId = RaftPeerId.valueOf(serverId);
-
-        RaftProperties properties = new RaftProperties();
-        properties.setInt(GrpcConfigKeys.OutputStream.RETRY_TIMES_KEY, Integer.MAX_VALUE);
-        GrpcConfigKeys.Server.setPort(properties, id2addr.get(serverId).getPort());
-        RaftServerConfigKeys.setStorageDir(properties, Collections.singletonList(new File(raftLogPath + myId)));
-
-        //Join the group of processes.
-        raftServer = RaftServer.newBuilder()
-                .setServerId(myId)
-                .setStateMachine(new StateMachineServer()).setProperties(properties)
-                .setGroup(raftGroup)
-                .build();
-        raftServer.start();
-        System.out.println("raftServer " + serverId + " foi iniciado corretamente");
-    }
-
-    private void startRatisServer01() throws IOException {
-
-        String serverId = "s1";
-
-        //Setup for this node.
-        RaftPeerId myId = RaftPeerId.valueOf(serverId);
-
-        RaftProperties properties = new RaftProperties();
-        properties.setInt(GrpcConfigKeys.OutputStream.RETRY_TIMES_KEY, Integer.MAX_VALUE);
-        GrpcConfigKeys.Server.setPort(properties, id2addr.get(serverId).getPort());
-        RaftServerConfigKeys.setStorageDir(properties, Collections.singletonList(new File(raftLogPath + myId)));
-
-        //Join the group of processes.
-        raftServer = RaftServer.newBuilder()
-                .setServerId(myId)
-                .setStateMachine(new StateMachineServer()).setProperties(properties)
-                .setGroup(raftGroup)
-                .build();
-        raftServer.start();
-        System.out.println("raftServer " + serverId + " foi iniciado corretamente");
-    }
-    private void startRatisServer02() throws IOException {
-
-        String serverId = "s2";
-
-        //Setup for this node.
-        RaftPeerId myId = RaftPeerId.valueOf(serverId);
-
-        RaftProperties properties = new RaftProperties();
-        properties.setInt(GrpcConfigKeys.OutputStream.RETRY_TIMES_KEY, Integer.MAX_VALUE);
-        GrpcConfigKeys.Server.setPort(properties, id2addr.get(serverId).getPort());
-        RaftServerConfigKeys.setStorageDir(properties, Collections.singletonList(new File(raftLogPath + myId)));
-
-        //Join the group of processes.
-        raftServer = RaftServer.newBuilder()
-                .setServerId(myId)
-                .setStateMachine(new StateMachineServer()).setProperties(properties)
-                .setGroup(raftGroup)
-                .build();
-        raftServer.start();
-        System.out.println("raftServer " + serverId + " foi iniciado corretamente");
-    }
-    private void startRatisServer03() throws IOException {
-
-        String serverId = "s3";
 
         //Setup for this node.
         RaftPeerId myId = RaftPeerId.valueOf(serverId);
