@@ -29,10 +29,10 @@ public class ExecutionThread implements Runnable {
 	private Input input;
 	
 	public ExecutionThread(BlockingQueue<Input> _executionQueue, HashMap<BigInteger, byte[]> _dataBase,
-						   RaftClient raftClient) {
+						   RaftClient _raftClient) {
 		this.executionQueue = _executionQueue;
 		this.dataBase = _dataBase;
-		this.raftClient = raftClient;
+		this.raftClient = _raftClient;
 		actualKey = dataBase.size();
 		nextKey = BigInteger.valueOf(dataBase.size());
 	}
@@ -42,6 +42,7 @@ public class ExecutionThread implements Runnable {
 			while (true) {
 				input = executionQueue.take();
 				switch (input.getOperation()) {
+					/*Função set*/
 					case 0:
 
 						actualKey = actualKey + 1;
@@ -54,63 +55,78 @@ public class ExecutionThread implements Runnable {
 						dataBase.put(nextKey, input.getContent().getBytes());
 
 						if (input.getEventSource() != null) {
-							input.getEventSource().reply("SUCCESS : Key = " + String.valueOf(nextKey));
+							input.getEventSource().reply("(SUCCESS) " + nextKey + ":" + input.getContent());
 						}
 
 						break;
+
+					/*Função get*/
 					case 1:
-						if (input.getContent().compareTo("*") == 0) {
+
+						if (input.getContent().compareTo("*") == 0) { /*Comparativo com todos*/
 							String response = "";
 							for (HashMap.Entry<BigInteger, byte[]> pair : dataBase.entrySet()) {
-								response += "Key: " + pair.getKey().toString() + " Value: " + new String(pair.getValue()) + " | ";
+								response += pair.getKey().toString() + ":" + new String(pair.getValue()) + " - ";
 							}
+
 							if (input.getEventSource() != null) {
-								input.getEventSource().reply(response);
+								input.getEventSource().reply("(SUCCESS) " + response);
 							}
-						} else if (dataBase.containsKey(input.getId())) {
+						} else if (dataBase.containsKey(input.getId())) { /*Comparativo com id passado*/
 							if (input.getEventSource() != null) {
-								input.getEventSource().reply(input.getId() + " " + new String(dataBase.get(input.getId())));
+								String response = input.getId() + ":" + new String(dataBase.get(input.getId()));
+								input.getEventSource().reply("(SUCCESS) " + response);
 							}
-						} else {
+						} else { /*Não foi passado chave e/ou nao existe*/
 							if (input.getEventSource() != null) {
-								input.getEventSource().reply("ERROR");
+								input.getEventSource().reply("(ERROR) Nao informado chave e/ou chave invalida");
 							}
 						}
 						break;
+
+					/*Função testandset*/
 					case 2:
-						if (dataBase.containsKey(input.getId())) {
+						if (dataBase.containsKey(input.getId())) { /*Comparativo com id passado*/
+
+							/*Atualizo no ratis*/
+							getValue = raftClient.send(Message.valueOf("add:" + input.getId() + ":" + input.getContent()));
+							response = getValue.getMessage().getContent().toString(Charset.defaultCharset());
+							System.out.println("Resposta:" + response);
+
 							dataBase.replace(input.getId(), input.getContent().getBytes());
 							if (input.getEventSource() != null) {
-								input.getEventSource().reply("ERROR");
+								input.getEventSource().reply("(SUCCESS) " + input.getId() + ":" + input.getContent());
 							}
-						} else {
+						} else { /*Não foi passado chave e/ou nao existe*/
 							if (input.getEventSource() != null) {
-								input.getEventSource().reply("ERROR");
+								input.getEventSource().reply("(ERROR) Nao informado chave e/ou chave invalida");
 							}
 						}
 						break;
+
+					/*Função del*/
 					case 3:
-						if (dataBase.containsKey(input.getId())) {
+						if (dataBase.containsKey(input.getId())) { /*Comparativo com id passado*/
 							dataBase.remove(input.getId());
 							if (input.getEventSource() != null) {
-								input.getEventSource().reply("SUCCESS");
+								input.getEventSource().reply("(SUCCESS) " + input.getId() + " removido.");
 							}
-						} else {
+						} else { /*Não foi passado chave e/ou nao existe*/
 							if (input.getEventSource() != null) {
-								input.getEventSource().reply("ERROR");
+								input.getEventSource().reply("(ERROR) Nao informado chave e/ou chave invalida");
 							}
 						}
 						break;
 
 					default:
 						if (input.getEventSource() != null) {
-							input.getEventSource().reply("ERROR");
+							input.getEventSource().reply("(ERROR) Comando nao conhecido");
 						}
 						break;
 				}
 			}
 		} catch (InterruptedException e) {
-			System.out.println("Ocorreu uma falha na execuçã das requisições.\nO servidor será finalizado.");
+			System.out.println("Ocorreu uma falha na execução das requisições.\nO servidor será finalizado.");
 		} catch (IOException ioException) {
 			System.out.println("ioException: " + ioException.getMessage());
 		}
