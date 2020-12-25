@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.util.HashMap;
-import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 
 
@@ -34,6 +33,7 @@ public class ExecutionThread implements Runnable {
 		this.dataBase = _dataBase;
 		this.raftClient = _raftClient;
 		actualKey = dataBase.size();
+
 		nextKey = BigInteger.valueOf(dataBase.size());
 	}
 	

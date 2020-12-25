@@ -1,6 +1,5 @@
 package com.projetosd.grpc.server;
 
-import com.projetosd.grpc.client.CrudClient;
 import org.apache.ratis.client.RaftClient;
 import org.apache.ratis.conf.Parameters;
 import org.apache.ratis.conf.RaftProperties;
@@ -10,7 +9,6 @@ import org.apache.ratis.protocol.*;
 import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.thirdparty.com.google.protobuf.ByteString;
-import org.apache.ratis.util.LifeCycle;
 
 import com.projetosd.grpc.resources.Configuration;
 import com.projetosd.grpc.resources.DataBaseRecovery;
@@ -26,14 +24,12 @@ import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class CrudServer {
 
     private static Properties connection;
     private static int port;
-    private static File logFolder;
 
     private static String raftLogPath;
     private static String raftGroupId;
@@ -50,7 +46,6 @@ public class CrudServer {
 
     private Thread organizerThread;
     private Thread executionThread;
-    private Thread logThread;
     private Server server;
 
     private BlockingQueue<Input> receptionQueue;
@@ -73,8 +68,6 @@ public class CrudServer {
         if (argsPort.equals("s3")) port = Integer.parseInt(connection.getProperty("properties.server.portThree"));
 
         System.out.println("Irei iniciar na porta: " + port);
-
-        logFolder = new File(connection.getProperty("properties.server.logFolder"));
 
         /*Mapeamento para o RATIS*/
         raftLogPath = String.valueOf(connection.getProperty("properties.server.raft.logPath"));
@@ -99,17 +92,10 @@ public class CrudServer {
                 raftAddresses
         );
 
-        if (!logFolder.exists()) {
-            logFolder.mkdir();
-        }
-
         receptionQueue = new LinkedBlockingQueue<Input>();
         executionQueue = new LinkedBlockingQueue<Input>();
         logQueue = new LinkedBlockingQueue<Input>();
         repassQueue = new LinkedBlockingQueue<Input>();
-
-        logNumber = DataBaseRecovery.getFileNumber(logFolder.toString(), "log");
-        snapshotNumber = DataBaseRecovery.getFileNumber(logFolder.toString(), "snap");
 
         if ((snapshotNumber - logNumber) > 1) {
             logNumber = this.snapshotNumber-1;
@@ -118,7 +104,7 @@ public class CrudServer {
         }
 
         try {
-            dataBase = DataBaseRecovery.dataBaseRecovery(executionQueue, logFolder.toString(), logNumber, snapshotNumber);
+            dataBase = DataBaseRecovery.dataBaseRecovery(executionQueue, logFolder.toString(), logNumber, snapshotNumber); /*Ataulizar para RATIS*/
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -174,7 +160,6 @@ public class CrudServer {
     private void startThreads() {
         organizerThread = new Thread(new OrganizerThread(receptionQueue, executionQueue, logQueue, repassQueue));
         executionThread = new Thread(new ExecutionThread(executionQueue, dataBase, raftClient));
-        logThread = new Thread (new LogThread(logQueue, dataBase, logFolder.toString(), logNumber, snapshotNumber));
     }
 
     private void startRatisServer(String serverId) throws IOException {
@@ -213,8 +198,6 @@ public class CrudServer {
         organizerThread.setDaemon(true);
         organizerThread.start();
 
-        logThread.setDaemon(true);
-        logThread.start();
 
         server = ServerBuilder.forPort(port).addService(new CrudServiceGrpcImpl(receptionQueue)).build().start();
 
