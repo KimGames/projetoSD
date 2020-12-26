@@ -30,7 +30,7 @@ public class CrudServiceGrpcImpl extends CrudServiceGrpc.CrudServiceImplBase {
             }
         });
 
-        Input input = new Input(BigInteger.valueOf(-1), request.getContent(), 0, eventSource);
+        Input input = new Input(BigInteger.valueOf(request.getId()), request.getContent(), 0, eventSource);
         requisitionsQueue.add(input);
     }
 

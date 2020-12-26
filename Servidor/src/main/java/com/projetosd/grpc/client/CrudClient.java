@@ -44,7 +44,6 @@ public class CrudClient {
 	}
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-
 		String[] ports = {"p1", "p2", "p3"};
 		if(!args[0].isEmpty() && Arrays.asList(ports).contains(args[0])) {
 			System.out.println("Porta enviada '" + args[0] + "' é válida.");
@@ -56,8 +55,6 @@ public class CrudClient {
 			System.out.println("Porta inválida.");
 			System.exit(1);
 		}
-
-
 	}
 
 	private void start() throws InterruptedException {

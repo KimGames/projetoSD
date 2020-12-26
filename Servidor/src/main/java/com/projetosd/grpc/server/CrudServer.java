@@ -165,11 +165,13 @@ public class CrudServer {
         RaftServerConfigKeys.setStorageDir(properties, Collections.singletonList(new File(raftLogPath + myId)));
 
         //Join the group of processes.
-        raftServer = RaftServer.newBuilder()
-                .setServerId(myId)
-                .setStateMachine(new StateMachineServer()).setProperties(properties)
-                .setGroup(raftGroup)
-                .build();
+        raftServer = RaftServer
+                            .newBuilder()
+                            .setServerId(myId)
+                            .setStateMachine(new StateMachineServer(dataBase))
+                            .setProperties(properties)
+                            .setGroup(raftGroup)
+                            .build();
         raftServer.start();
         System.out.println("raftServer " + serverId + " foi iniciado corretamente");
     }
