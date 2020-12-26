@@ -15,6 +15,7 @@ com\projetosd\grpc\GetRequestOrBuilder.class
 com\projetosd\grpc\resources\EventSource$Observer.class
 com\projetosd\grpc\CrudServiceGrpc$CrudServiceMethodDescriptorSupplier.class
 com\projetosd\grpc\services\CrudServiceGrpcImpl$2.class
+com\projetosd\grpc\resources\ActionsEnum.class
 com\projetosd\grpc\GetRequest$Builder.class
 com\projetosd\grpc\GetRequest.class
 com\projetosd\grpc\SetRequest$1.class
@@ -37,6 +38,7 @@ com\projetosd\grpc\CrudProto$1.class
 com\projetosd\grpc\resources\EventSource$1.class
 com\projetosd\grpc\resources\Input.class
 com\projetosd\grpc\ResponseModel$1.class
+com\projetosd\grpc\server\ExecutionThread$1.class
 com\projetosd\grpc\client\CrudClient.class
 com\projetosd\grpc\server\ExecutionThread.class
 com\projetosd\grpc\ResponseModel$Builder.class

@@ -40,7 +40,7 @@ public class StateMachineServer extends BaseStateMachine {
         final RaftProtos.LogEntryProto entry = trx.getLogEntry();
         final String[] opKeyValue = entry.getStateMachineLogEntry().getLogData().toString(Charset.defaultCharset()).split(":");
 
-        System.out.println(opKeyValue[0] + "-" + opKeyValue[1] + "-" + opKeyValue[2]);
+        System.out.println(opKeyValue[0] + "-" + opKeyValue[1]);
         String result = "";
 
         switch (opKeyValue[0]) {
@@ -61,8 +61,7 @@ public class StateMachineServer extends BaseStateMachine {
                 break;
 
             case "del":
-                System.out.println("Chegou aqui.");
-                /*Removo no Banco de dados RATIS*/
+                /*Adiciono no Banco de dados RATIS*/
                 result += opKeyValue[0]+ ":"+ key2values.remove(opKeyValue[1]);
 
                 /*Removo no Banco de dados Padrão*/
@@ -73,8 +72,8 @@ public class StateMachineServer extends BaseStateMachine {
         final CompletableFuture<Message> f = CompletableFuture.completedFuture(Message.valueOf(result));
         final RaftProtos.RaftPeerRole role = trx.getServerRole();
 
-        System.out.println(role + ":" + getId() + " " + opKeyValue[0] + " " + opKeyValue[1] + "=" + opKeyValue[2]);
-
         return f;
     }
+
+
 }
