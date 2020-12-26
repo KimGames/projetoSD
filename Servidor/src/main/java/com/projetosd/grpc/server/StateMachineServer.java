@@ -15,6 +15,19 @@ public class StateMachineServer extends BaseStateMachine {
     private final Map<String, String> key2values = new ConcurrentHashMap<>();
 
     @Override
+    public CompletableFuture<Message> query(Message request) {
+
+        /*Recupero minhas chaves*/
+        final String[] opKey = request.getContent().toString(Charset.defaultCharset()).split(":");
+        final String result = key2values.get(opKey[1]);
+
+        /*Printo o meu resultado*/
+        System.out.println(opKey[0] + ":" + opKey[1] + " = " + result);
+
+        return CompletableFuture.completedFuture(Message.valueOf(result));
+    }
+
+    @Override
     public CompletableFuture<Message> applyTransaction(TransactionContext trx) {
         final RaftProtos.LogEntryProto entry = trx.getLogEntry();
         final String[] opKeyValue = entry.getStateMachineLogEntry().getLogData().toString(Charset.defaultCharset()).split(":");
@@ -30,14 +43,5 @@ public class StateMachineServer extends BaseStateMachine {
             LOG.trace("{}: key/values={}", getId(), key2values);
         }
         return f;
-    }
-
-    @Override
-    public CompletableFuture<Message> query(Message request) {
-        final String[] opKey = request.getContent().toString(Charset.defaultCharset()).split(":");
-        final String result = opKey[0]+ ":"+ key2values.get(opKey[1]);
-
-        LOG.debug("{}: {} = {}", opKey[0], opKey[1], result);
-        return CompletableFuture.completedFuture(Message.valueOf(result));
     }
 }

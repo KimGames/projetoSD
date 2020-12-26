@@ -45,13 +45,16 @@ public class ExecutionThread implements Runnable {
 					/*Função set*/
 					case 0:
 
+						/*Recupero minha proxima chave*/
 						actualKey = actualKey + 1;
 						nextKey = BigInteger.valueOf(actualKey);
 
+						/*Adiciono o valor em meu RATIS*/
 						getValue = raftClient.send(Message.valueOf("add:" + nextKey + ":" + input.getContent()));
 						response = getValue.getMessage().getContent().toString(Charset.defaultCharset());
 						System.out.println("Resposta:" + response);
 
+						/*Adiciono em meu database*/
 						dataBase.put(nextKey, input.getContent().getBytes());
 
 						if (input.getEventSource() != null) {
@@ -63,25 +66,37 @@ public class ExecutionThread implements Runnable {
 					/*Função get*/
 					case 1:
 
-						if (input.getContent().compareTo("*") == 0) { /*Comparativo com todos*/
-							String response = "";
-							for (HashMap.Entry<BigInteger, byte[]> pair : dataBase.entrySet()) {
-								response += pair.getKey().toString() + ":" + new String(pair.getValue()) + " - ";
-							}
+						getValue = raftClient.sendReadOnly(Message.valueOf("get:" + input.getId()));
+						response = getValue.getMessage().getContent().toString(Charset.defaultCharset());
+						System.out.println("Resposta:" + response);
 
-							if (input.getEventSource() != null) {
-								input.getEventSource().reply("(SUCCESS) " + response);
-							}
-						} else if (dataBase.containsKey(input.getId())) { /*Comparativo com id passado*/
-							if (input.getEventSource() != null) {
-								String response = input.getId() + ":" + new String(dataBase.get(input.getId()));
-								input.getEventSource().reply("(SUCCESS) " + response);
-							}
-						} else { /*Não foi passado chave e/ou nao existe*/
-							if (input.getEventSource() != null) {
-								input.getEventSource().reply("(ERROR) Nao informado chave e/ou chave invalida");
-							}
-						}
+						String message = input.getId() + ":" + response;
+						input.getEventSource().reply("(SUCCESS) " + message);
+
+//						if (input.getContent().compareTo("*") == 0) { /*Comparativo com todos*/
+//							String response = "";
+//							for (HashMap.Entry<BigInteger, byte[]> pair : dataBase.entrySet()) {
+//								response += pair.getKey().toString() + ":" + new String(pair.getValue()) + " - ";
+//							}
+//
+//							if (input.getEventSource() != null) {
+//								input.getEventSource().reply("(SUCCESS) " + response);
+//							}
+//						} else if (dataBase.containsKey(input.getId())) { /*Comparativo com id passado*/
+//							if (input.getEventSource() != null) {
+//
+//								getValue = raftClient.sendReadOnly(Message.valueOf("get:" + input.getId()));
+//								response = getValue.getMessage().getContent().toString(Charset.defaultCharset());
+//								System.out.println("Resposta:" + response);
+//
+//								String response = input.getId() + ":" + new String(dataBase.get(input.getId()));
+//								input.getEventSource().reply("(SUCCESS) " + response);
+//							}
+//						} else { /*Não foi passado chave e/ou nao existe*/
+//							if (input.getEventSource() != null) {
+//								input.getEventSource().reply("(ERROR) Nao informado chave e/ou chave invalida");
+//							}
+//						}
 						break;
 
 					/*Função testandset*/

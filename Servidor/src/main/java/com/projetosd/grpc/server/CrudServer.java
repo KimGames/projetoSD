@@ -55,9 +55,6 @@ public class CrudServer {
 
     private HashMap<BigInteger, byte[]> dataBase;
 
-    private int logNumber;
-    private int snapshotNumber;
-
     public CrudServer(String argsPort) throws IOException {
 
         /*Mapeamento Inicial*/
@@ -97,14 +94,9 @@ public class CrudServer {
         logQueue = new LinkedBlockingQueue<Input>();
         repassQueue = new LinkedBlockingQueue<Input>();
 
-        if ((snapshotNumber - logNumber) > 1) {
-            logNumber = this.snapshotNumber-1;
-        } else if ((snapshotNumber - logNumber) < 1) {
-            snapshotNumber = this.logNumber+1;
-        }
 
         try {
-            dataBase = DataBaseRecovery.dataBaseRecovery(executionQueue, logFolder.toString(), logNumber, snapshotNumber); /*Ataulizar para RATIS*/
+            dataBase = DataBaseRecovery.dataBaseRecovery(executionQueue); /*Ataulizar para RATIS*/
         } catch (IOException e) {
             e.printStackTrace();
         }
