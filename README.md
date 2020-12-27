@@ -1,4 +1,4 @@
-# Parte 01 do Projeto de Sistemas Distribuidos - UFU
+# Projeto de Sistemas Distribuidos - UFU
 
 # Alunos:
   - Kim Ruan Lopes. nº 11421BCC029.
