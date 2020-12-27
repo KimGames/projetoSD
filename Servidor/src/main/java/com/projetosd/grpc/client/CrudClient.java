@@ -1,6 +1,7 @@
 package com.projetosd.grpc.client;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -22,13 +23,15 @@ public class CrudClient {
 	private CrudServiceGrpc.CrudServiceBlockingStub stub;
 	private BlockingQueue<Object> responseQueue = new LinkedBlockingQueue<Object>();
 	
-	public CrudClient() throws IOException {
+	public CrudClient(String argsPort) throws IOException {
 		connection = Configuration.getProperties();
 		serverAddress = connection.getProperty("properties.server.host");
-		port = Integer.parseInt(connection.getProperty("properties.server.port"));
-		
-		channel = ManagedChannelBuilder
-	    		.forAddress(serverAddress, port).usePlaintext().build();
+
+		if (argsPort.equals("p1")) port = Integer.parseInt(connection.getProperty("properties.server.portOne"));
+		if (argsPort.equals("p2")) port = Integer.parseInt(connection.getProperty("properties.server.portTwo"));
+		if (argsPort.equals("p3")) port = Integer.parseInt(connection.getProperty("properties.server.portThree"));
+
+		channel = ManagedChannelBuilder.forAddress(serverAddress, port).usePlaintext().build();
 		stub = CrudServiceGrpc.newBlockingStub(channel);
 		
 		menuThread = new Thread(new MenuThread(stub, responseQueue));
@@ -36,13 +39,22 @@ public class CrudClient {
 		
 		responseThread = new Thread(new ResponseThread(responseQueue));
 		responseThread.setDaemon(true);
+
+		System.out.println("Comunicarei em: " + serverAddress + ":" + port);
 	}
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-		final CrudClient client = new CrudClient();
-		client.start();
-		client.blockUntilShutdown();
-		client.stop();
+		String[] ports = {"p1", "p2", "p3"};
+		if(!args[0].isEmpty() && Arrays.asList(ports).contains(args[0])) {
+			System.out.println("Porta enviada '" + args[0] + "' é válida.");
+			final CrudClient client = new CrudClient(args[0]);
+			client.start();
+			client.blockUntilShutdown();
+			client.stop();
+		} else {
+			System.out.println("Porta inválida.");
+			System.exit(1);
+		}
 	}
 
 	private void start() throws InterruptedException {

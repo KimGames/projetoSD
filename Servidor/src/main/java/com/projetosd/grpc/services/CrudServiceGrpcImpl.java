@@ -5,6 +5,7 @@ import com.projetosd.grpc.resources.Input;
 import com.projetosd.grpc.*;
 import io.grpc.stub.StreamObserver;
 
+import java.math.BigInteger;
 import java.util.concurrent.BlockingQueue;
 
 public class CrudServiceGrpcImpl extends CrudServiceGrpc.CrudServiceImplBase {
@@ -29,7 +30,7 @@ public class CrudServiceGrpcImpl extends CrudServiceGrpc.CrudServiceImplBase {
             }
         });
 
-        Input input = new Input(-1, request.getContent(), 0, eventSource);
+        Input input = new Input(BigInteger.valueOf(request.getId()), request.getContent(), 0, eventSource);
         requisitionsQueue.add(input);
     }
 
@@ -50,9 +51,9 @@ public class CrudServiceGrpcImpl extends CrudServiceGrpc.CrudServiceImplBase {
         Input input;
 
         if (request.getAll()) {
-            input = new Input(-1, "*", 1, eventSource);
+            input = new Input(BigInteger.valueOf(-1), "*", 1, eventSource);
         } else {
-            input = new Input(request.getId(), "", 1, eventSource);
+            input = new Input(BigInteger.valueOf(request.getId()), "", 1, eventSource);
         }
 
         requisitionsQueue.add(input);
@@ -72,7 +73,7 @@ public class CrudServiceGrpcImpl extends CrudServiceGrpc.CrudServiceImplBase {
             }
         });
 
-        Input input = new Input(request.getId(), request.getContent(), 2, eventSource);
+        Input input = new Input(BigInteger.valueOf(request.getId()), request.getContent(), 2, eventSource);
 
         requisitionsQueue.add(input);
     }
@@ -91,7 +92,7 @@ public class CrudServiceGrpcImpl extends CrudServiceGrpc.CrudServiceImplBase {
             }
         });
 
-        Input input = new Input(request.getId(), "", 3, eventSource);
+        Input input = new Input(BigInteger.valueOf(request.getId()), "", 3, eventSource);
 
         requisitionsQueue.add(input);
     }

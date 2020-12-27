@@ -19,7 +19,7 @@ public class MenuThread implements Runnable {
 	public void run() {
 		scn = new Scanner(System.in);
 		System.out.println("\n------------ Commands List -------------");
-		System.out.println("1. set <value>");
+		System.out.println("1. set <id> <value>");
 		System.out.println("2. get <id>");
 		System.out.println("3. get *");
 		System.out.println("4. testandset <id> <value>");
@@ -50,6 +50,7 @@ public class MenuThread implements Runnable {
 	}
 
 	public Object validateCommand(String text) {
+		Long id = Long.parseLong("0");
 		text = text.trim();
 		
 		if(text.indexOf(' ') != -1) {
@@ -61,7 +62,20 @@ public class MenuThread implements Runnable {
 
 			switch (command.toLowerCase()) {
 				case "set":
-					return stub.set(SetRequest.newBuilder().setContent(content).build());
+					if(content.indexOf(' ') != -1) {
+						try {
+							id = Long.parseLong(content.substring(0, content.indexOf(' ')));
+							content = content.substring(content.indexOf(' ') + 1).trim();
+
+							if (content.length() == 0)
+								return null;
+
+							return stub.set(SetRequest.newBuilder().setId(id).setContent(content).build());
+						} catch (NumberFormatException e) {
+							return null;
+						}
+					}
+					break;
 					
 				case "get":
 					if (content.compareTo("*") != 0) {
@@ -76,7 +90,7 @@ public class MenuThread implements Runnable {
 					
 				case "del":
 					try {
-						return stub.del(DelRequest.newBuilder().build().newBuilder().setId(Long.parseLong(content)).build());
+						return stub.del(DelRequest.newBuilder().setId(Long.parseLong(content)).build());
 					} catch (NumberFormatException e) {
 						return null;
 					}
@@ -84,7 +98,7 @@ public class MenuThread implements Runnable {
 				case "testandset":
 					if(content.indexOf(' ') != -1) {
 						try {
-							Long id = Long.parseLong(content.substring(0, content.indexOf(' ')));
+							id = Long.parseLong(content.substring(0, content.indexOf(' ')));
 							content = content.substring(content.indexOf(' ') + 1).trim();
 		
 							if (content.length() == 0)
